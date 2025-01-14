@@ -41,8 +41,8 @@ This repository contains Terraform configurations to deploy a **Google Kubernete
 
 ### 2. Clone the Repository:
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/Abhiraj-1604/GCP-terraform
+cd GCP-terraform
 ````
 
 ### 3. Update Variables:
