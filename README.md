@@ -32,14 +32,6 @@ This repository contains Terraform configurations to deploy a **Google Kubernete
 
 ---
 
-## Architecture Diagram
-
-Below is the architecture diagram for the GKE deployment:
-
-![GKE Architecture](path-to-your-image.png)
-
----
-
 ## Deployment Steps
 
 ### 1. Prerequisites:
