@@ -1,74 +1,76 @@
-# GCP-terraform
+# GKE Architecture Deployment
 
-1. Networking Setup
-Virtual Private Cloud (VPC)
-Resource: google_compute_network.vpc
-A custom VPC named dev-medium-dev-gke-vpc is created. This VPC will isolate network traffic and provide private networking for the GKE cluster and its components.
-Subnets
-Resource: google_compute_subnetwork.subnet
-Three subnets (subnet-1, subnet-2, subnet-3) are created within the us-central1 region.
-Each subnet has a unique CIDR block (10.0.0.0/20, 10.0.16.0/20, and 10.0.32.0/20).
-Secondary IP ranges are defined for pods and services to allocate IP addresses dynamically for workloads:
-Pods range: Allocated for Kubernetes Pods.
-Services range: Allocated for Kubernetes Services.
-Firewall Rules
-Resource: google_compute_firewall.allow-internal
-A firewall rule named dev-medium-dev-gke-vpc-allow-internal is created to allow internal traffic within the VPC on all TCP, UDP, and ICMP ports.
-Cloud NAT
-Resource: google_compute_router and google_compute_router_nat
-A Cloud Router and NAT are created to allow outbound internet access for resources in private subnets without exposing them to the public internet.
-2. Kubernetes Cluster
-Primary GKE Cluster
-Resource: google_container_cluster.primary
-A GKE cluster named dev-medium-dev-gke-cluster is deployed:
-Private Cluster: Nodes are private, and access to the master is restricted to the defined IP range (172.16.0.0/28).
-Release Channel: The cluster is on the REGULAR release channel, which provides stable Kubernetes updates.
-Deletion Protection: Enabled to prevent accidental deletion.
-Master Authorized Networks: Allows all IPs (0.0.0.0/0) to access the master endpoint.
-Shielded Nodes: Enabled for enhanced security.
-Node Pools
-Three separate node pools are created to optimize resource usage:
+This repository contains Terraform configurations to deploy a **Google Kubernetes Engine (GKE)** cluster on **Google Cloud Platform (GCP)**. Below is an overview of the architecture and the deployment setup.
 
-General Pool:
-Machine Type: e2-standard-2 (2 vCPUs, 8 GB RAM).
-Autoscaling: 1-5 nodes.
-Memory Pool:
-Machine Type: e2-highmem-4 (4 vCPUs, 32 GB RAM).
-Disk Size: 200 GB.
-Autoscaling: 1-5 nodes.
-Spot Pool:
-Machine Type: e2-standard-4 (4 vCPUs, 16 GB RAM).
-Disk Size: 100 GB.
-Spot Instances: These are preemptible, cost-effective VMs suitable for batch workloads or fault-tolerant applications.
-Autoscaling: 0-10 nodes.
-3. IAM and Service Accounts
-Service Account
-Resource: google_service_account.gke_sa
-A dedicated service account is created for the GKE cluster with permissions for monitoring and logging.
-IAM Roles
-Resource: google_project_iam_member.gke_sa_roles
-The service account is assigned roles:
-roles/logging.logWriter
-roles/monitoring.metricWriter
-roles/monitoring.viewer
-roles/stackdriver.resourceMetadata.writer
-4. High-Level Architecture Overview
-VPC:
+---
 
-Custom VPC isolates network traffic for the GKE cluster.
-Subnets and firewall rules control internal communication and external internet access.
-Cluster:
+## Architecture Overview
 
-The GKE cluster runs workloads with multiple node pools tailored for general, memory-intensive, and cost-effective workloads (spot instances).
-Networking:
+### Key Components:
 
-Private cluster ensures security by restricting node access to private subnets.
-Cloud NAT allows outbound internet access for updates and external communications.
-Scalability:
+1. **Virtual Private Cloud (VPC):**
+   - A custom VPC named `dev-medium-dev-gke-vpc` isolates network traffic for the GKE cluster.
+   - Three subnets are created within the `us-central1` region:
+     - Subnet 1: `10.0.0.0/20`
+     - Subnet 2: `10.0.16.0/20`
+     - Subnet 3: `10.0.32.0/20`
 
-Node pools are autoscaled to handle variable workloads efficiently.
-Spot instances are used for cost savings.
-Security:
+2. **GKE Cluster:**
+   - **Private Cluster**: Nodes are deployed in private subnets with restricted access to the master.
+   - **Node Pools**:
+     - General Pool: `e2-standard-2` (2 vCPUs, 8 GB RAM), autoscaled 1-5 nodes.
+     - Memory Pool: `e2-highmem-4` (4 vCPUs, 32 GB RAM), autoscaled 1-5 nodes.
+     - Spot Pool: `e2-standard-4` (4 vCPUs, 16 GB RAM), autoscaled 0-10 nodes (uses spot instances for cost optimization).
 
-Shielded nodes, private clusters, and IAM roles enhance security.
-Deletion protection safeguards critical infrastructure.
+3. **Networking:**
+   - **Firewall Rule**: Allows internal communication within the VPC.
+   - **Cloud NAT**: Provides outbound internet access for private nodes through a Cloud Router.
+
+4. **IAM and Security:**
+   - A dedicated service account is created for the GKE cluster.
+   - Roles are assigned for logging and monitoring.
+
+---
+
+## Architecture Diagram
+
+Below is the architecture diagram for the GKE deployment:
+
+![GKE Architecture](path-to-your-image.png)
+
+---
+
+## Deployment Steps
+
+### 1. Prerequisites:
+- Terraform installed.
+- GCP project with necessary permissions.
+- `gcloud` CLI authenticated to the target project.
+
+### 2. Clone the Repository:
+```bash
+git clone <repository-url>
+cd <repository-folder>
+````
+
+### 3. Update Variables:
+Modify the variables.tf file or provide a terraform.tfvars file with the required values.
+
+### 4. Initialize Terraform:
+```
+terraform init
+```
+### 5. Plan the Deployment:
+```
+terraform plan
+```
+
+### 6. Apply the Deployment:
+```
+terraform apply
+```
+
+## Notes
+-Private Cluster: This setup ensures enhanced security by keeping nodes in private subnets and using Cloud NAT for internet access.
+-Autoscaling: Node pools are autoscaled to handle varying workloads efficiently.
+-Spot Instances: Used in the Spot Pool for cost-effective, fault-tolerant workloads.
