@@ -25,14 +25,14 @@ pipeline {
         stage('Init') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-creds', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh 'terraform -chdir=gcp/ init'
+                    sh 'terraform -chdir=gke/ init'
                 }
             }
         }
         stage('Validate') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-creds', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    sh 'terraform -chdir=gcp/ validate'
+                    sh 'terraform -chdir=gke/ validate'
                 }
             }
         }
@@ -41,11 +41,11 @@ pipeline {
                 withCredentials([file(credentialsId: 'gcp-creds', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {    
                         if (params.Terraform_Action == 'plan') {
-                            sh "terraform -chdir=gcp/ plan -var-file=${params.Environment}.tfvars"
+                            sh "terraform -chdir=gke/ plan -var-file=${params.Environment}.tfvars"
                         }   else if (params.Terraform_Action == 'apply') {
-                            sh "terraform -chdir=gcp/ apply -var-file=${params.Environment}.tfvars -auto-approve"
+                            sh "terraform -chdir=gke/ apply -var-file=${params.Environment}.tfvars -auto-approve"
                         }   else if (params.Terraform_Action == 'destroy') {
-                            sh "terraform -chdir=gcp/ destroy -var-file=${params.Environment}.tfvars -auto-approve"
+                            sh "terraform -chdir=gke/ destroy -var-file=${params.Environment}.tfvars -auto-approve"
                         } else {
                             error "Invalid value for Terraform_Action: ${params.Terraform_Action}"
                         }
